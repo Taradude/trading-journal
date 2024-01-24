@@ -1,0 +1,32 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+button,
+input {
+  border: none;
+  outline: none;
+}
+button {
+  cursor: pointer;
+}
+
+a {
+  font-size: 20px;
+  line-height: 24px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

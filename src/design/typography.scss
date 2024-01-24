@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Climate+Crisis&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap');
+
+$font-family-default: 'Titillium Web', sans-serif;
+
+h1 {
+  font-size: 82px;
+  background: linear-gradient(90deg, $white 35%, $yellow 100%);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+h2 {
+  color: $white;
+  font-size: 48px;
+}
+
+a {
+  color: $white;
+}
+
+@media screen and (max-width: 767px) {
+  h1 {
+    font-size: 48px;
+  }
+  h2 {
+    font-size: 32px;
+  }
+}
