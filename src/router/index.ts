@@ -19,6 +19,11 @@ const routes: Array<RouteConfig> = [
         name: 'MyTrades',
         component: () => import('@/views/MyTrades.vue'),
       },
+      {
+        path: '/dashboard',
+        name: 'DashBoard',
+        component: () => import('@/views/DashBoardView.vue'),
+      },
     ],
   },
 ]

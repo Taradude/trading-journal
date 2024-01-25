@@ -2,8 +2,9 @@
   <div class="main-layout">
     <div class="main-layout__page">
       <nav class="main-layout__page__header">
-        <router-link to="/trades">My trades</router-link>
         <router-link to="/">Home</router-link>
+        <router-link to="/trades">My trades</router-link>
+        <router-link to="/dashboard">Dashboard</router-link>
       </nav>
       <router-view />
     </div>
