@@ -9,4 +9,5 @@ export interface Trade {
   description: string
   result: number
   screenShotLink: string
+  id: number
 }

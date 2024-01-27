@@ -1,8 +1,7 @@
 <template>
   <div class="base-input">
-    <img src="" alt="" />
     <label :for="id">{{ label }}</label>
-    <input :type="type" :id="id" :min="min" :step="step" />
+    <input :type="type" :id="id" :min="min" :step="step" @input="onInputUpdate($event.target?.value)" />
   </div>
 </template>
 
@@ -17,6 +16,10 @@ export default class BaseInput extends Vue {
   @Prop({ default: '' }) min!: string
   @Prop({ default: '' }) step!: string
   @Prop({ default: '' }) modelValue!: string | number
+
+  onInputUpdate(modelValue: string | number) {
+    this.$emit('input', modelValue)
+  }
 }
 </script>
 
@@ -29,20 +32,18 @@ export default class BaseInput extends Vue {
 
   label {
     font-weight: bold;
-    background: linear-gradient(90deg, $white 35%, $yellow 100%);
-    -webkit-background-clip: text;
-    color: transparent;
+    color: $yellow;
     padding: 6px;
     font-size: 20px;
   }
   input {
+    text-align: center;
     min-width: 200px;
     padding: 12px;
     border-radius: 12px;
     background-color: $white;
     color: $black;
     font-weight: bold;
-    text-align: center;
   }
 }
 </style>

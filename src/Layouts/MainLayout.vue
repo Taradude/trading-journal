@@ -20,12 +20,9 @@ export default class MainLayout extends Vue {}
 
 <style lang="scss">
 .main-layout {
-  background-color: $grey;
   flex: 1;
 
   &__page {
-    height: 100vh;
-
     padding: 64px 48px;
     display: flex;
     // justify-content: center;
@@ -51,6 +48,9 @@ export default class MainLayout extends Vue {}
 @media screen and (max-width: 767px) {
   .main-layout__page {
     padding: 12px;
+  }
+  .main-layout__page__header {
+    gap: 24px;
   }
 }
 </style>

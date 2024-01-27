@@ -43,9 +43,7 @@ export default class BaseSelect extends Vue {
 
   label {
     font-weight: bold;
-    background: linear-gradient(90deg, $white 35%, $yellow 100%);
-    -webkit-background-clip: text;
-    color: transparent;
+    color: $yellow;
     padding: 6px;
     font-size: 20px;
   }
