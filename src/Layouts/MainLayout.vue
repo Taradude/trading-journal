@@ -6,34 +6,24 @@
         <router-link to="/trades">My trades</router-link>
         <router-link to="/dashboard">Dashboard</router-link>
       </nav>
-      <router-view />
+      <transition :name="$route.meta?.transition || 'fade'" mode="out-in">
+        <router-view />
+      </transition>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Vue, Component } from 'vue-property-decorator'
-//   import BaseButton from '@/components/BaseComponents/BaseButton.vue'
-
-//   @Component({
-// components: {
-//       BaseButton,
-//     },
-//   })
 export default class MainLayout extends Vue {}
 </script>
 
 <style lang="scss">
 .main-layout {
-  background-color: $grey;
-  flex: 1;
-
   &__page {
-    height: 100vh;
-
     padding: 64px 48px;
     display: flex;
-    // justify-content: center;
+    justify-content: center;
     align-items: center;
     flex-direction: column;
 
@@ -56,6 +46,9 @@ export default class MainLayout extends Vue {}
 @media screen and (max-width: 767px) {
   .main-layout__page {
     padding: 12px;
+  }
+  .main-layout__page__header {
+    gap: 24px;
   }
 }
 </style>

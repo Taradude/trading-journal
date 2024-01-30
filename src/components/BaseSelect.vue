@@ -3,8 +3,8 @@
     <label for="">{{ label }}</label>
     <select name="base" :id="id" v-model="selectedDirection" @change="handleDirectionChange">
       <option value="" disabled selected hidden>Direction</option>
-      <option value="Long">Long</option>
-      <option value="Short">Short</option>
+      <option value="long">Long</option>
+      <option value="short">Short</option>
     </select>
   </div>
 </template>
@@ -43,9 +43,7 @@ export default class BaseSelect extends Vue {
 
   label {
     font-weight: bold;
-    background: linear-gradient(90deg, $white 35%, $yellow 100%);
-    -webkit-background-clip: text;
-    color: transparent;
+    color: $yellow;
     padding: 6px;
     font-size: 20px;
   }
