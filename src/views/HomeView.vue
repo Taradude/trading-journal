@@ -7,14 +7,18 @@
       <p class="home__crypto__coin-price">ETH : {{ ethPrice }} <span>$</span></p>
       <p class="home__crypto__coin-price">SOL : {{ solPrice }} <span>$</span></p>
     </div>
+    <BaseSvgBtc />
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
+import BaseSvgBtc from '@/components/BaseSvgBtc.vue'
 
 @Component({
-  components: {},
+  components: {
+    BaseSvgBtc,
+  },
 })
 export default class HomeView extends Vue {
   ethPrice = 0

@@ -21,7 +21,7 @@ export default class MainLayout extends Vue {}
 <style lang="scss">
 .main-layout {
   &__page {
-    padding: 64px 48px;
+    padding: 50px 40px;
     display: flex;
     justify-content: center;
     align-items: center;
