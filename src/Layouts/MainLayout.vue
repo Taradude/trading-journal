@@ -20,12 +20,10 @@ export default class MainLayout extends Vue {}
 
 <style lang="scss">
 .main-layout {
-  flex: 1;
-
   &__page {
     padding: 64px 48px;
     display: flex;
-    // justify-content: center;
+    justify-content: center;
     align-items: center;
     flex-direction: column;
 

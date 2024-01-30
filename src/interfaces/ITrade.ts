@@ -1,4 +1,4 @@
-export interface Trade {
+export interface ITrade {
   date: string
   ticker: string
   direction: string
@@ -9,5 +9,6 @@ export interface Trade {
   description: string
   result: number
   screenShotLink: string
+  riskReward: number
   id: number
 }

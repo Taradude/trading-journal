@@ -1,26 +1,23 @@
-import { Trade } from '@/interfaces/Trade'
+import { MutationTree } from 'vuex'
+import { ITrade } from '@/interfaces/ITrade'
 
 export default {
   namespaced: true,
   state: {
     trades: [],
   },
-  getters: {},
   mutations: {
-    addTrade(newTrade: Trade, state: any) {
+    addTrade(state: any, newTrade: ITrade) {
       state.trades.push(newTrade)
     },
-    // calculateTakeProfit() {
-    //   const distanceToStop = Math.abs(this.newTrade.entry - this.newTrade.stopLoss)
-    //   if (this.newTrade.direction === 'long') {
-    //     const takeProfit = distanceToStop * this.riskReward + +this.newTrade.entry
-    //     this.newTrade.takeProfit = takeProfit
-    //   } else if (this.newTrade.direction === 'short') {
-    //     const takeProfit = distanceToStop * this.riskReward - +this.newTrade.entry
-    //     this.newTrade.takeProfit = Math.abs(takeProfit)
-    //   }
-    // },
+
+    updateTradeResult(state: any, payload: any) {
+      console.log('adas')
+      const { trade, result } = payload
+      const index = state.trades.findIndex((t: ITrade) => t.id === trade.id)
+      if (index !== -1) {
+        state.trades[index].result = result
+      }
+    },
   },
-  actions: {},
-  modules: {},
 }

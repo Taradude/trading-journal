@@ -1,19 +1,19 @@
 <template>
   <div class="my-trades">
-    <h1>Trade History</h1>
+    <h1>Position size Calculator</h1>
     <div class="my-trades__top">
       <BaseInput
         type="number"
-        label="Deposit size in K"
+        label="Deposit size"
         id="deposit"
-        min="1"
-        step="1"
+        min="1000"
+        step="100"
         v-model="depositData.depositSize"
       />
       <BaseInput
         type="number"
         id="riskPerTrade"
-        label="Risk per trade"
+        label="Risk per trade %"
         min="0.1"
         step="0.1"
         v-model="depositData.riskPerTrade"
@@ -24,7 +24,7 @@
         label="Risk reward ratio 1 :"
         :min="1"
         :step="0.1"
-        v-model="depositData.riskReward"
+        v-model="newTrade.riskReward"
       />
     </div>
     <div class="my-trades__middle">
@@ -41,10 +41,11 @@
       v-model="newTrade.description"
       name="descriptionі"
       id="description"
-      placeholder="Full description with emotions and reasons"
+      placeholder="Full description of a trade with emotions and reasons"
     ></textarea>
     <button class="my-trades__btn" @click="addTrade">Add trade</button>
-    <BaseResultBox v-for="trade in $store.state.trades" :key="trade.id" :trade="trade" />
+    <h2>Trade History</h2>
+    <BaseResultBox v-for="trade in $store.state.trade.trades" :key="trade.id" :trade="trade" />
   </div>
 </template>
 
@@ -52,24 +53,22 @@
 import { Component, Vue } from 'vue-property-decorator'
 import BaseInput from '@/components/BaseInput.vue'
 import BaseSelect from '@/components/BaseSelect.vue'
-import { Trade } from '@/interfaces/Trade'
 import BaseResultBox from '@/components/BaseResultBox.vue'
-
+import { ITrade } from '@/interfaces/ITrade'
 @Component({
   components: {
     BaseInput,
     BaseSelect,
+    BaseResultBox,
   },
 })
 export default class MyTrades extends Vue {
   depositData: any = {
     riskPerTrade: 0,
     depositSize: 0,
-    depositSizeCalc: 0,
-    riskReward: 0,
   }
 
-  newTrade: Trade = {
+  newTrade: ITrade = {
     date: '',
     ticker: '',
     direction: '',
@@ -80,43 +79,69 @@ export default class MyTrades extends Vue {
     description: '',
     result: 0,
     screenShotLink: '',
+    riskReward: 0,
     id: 0,
   }
   get tradesLength() {
-    return this.$store.state.trade.trades || []
+    return this.$store.state.trade.trades.length
   }
 
-  // addTrade() {
-  //   const tradeId = this.tradesLength + 1
-  //   this.newTrade.id = tradeId
+  calculatePositionSize() {
+    if (
+      this.newTrade.entry >= 0.001 &&
+      this.depositData.riskPerTrade >= 0.1 &&
+      this.newTrade.stopLoss >= 0.001
+    ) {
+      const riskAmount = (this.depositData.depositSize * this.depositData.riskPerTrade) / 100
 
-  //   this.$store.commit('trades/addTrade', this.newTrade)
+      const distanceToStop = Math.abs(+this.newTrade.entry - +this.newTrade.stopLoss)
 
-  //   this.clearForm()
-  // }
+      const positionSize = riskAmount / distanceToStop
+      this.newTrade.positionSize = positionSize
+
+      return positionSize.toFixed(3)
+    }
+  }
+
   addTrade() {
-    // const tradeId = this.tradesLength && this.tradesLength > 0 ? this.tradesLength + 1 : 1
-    // this.newTrade.id = tradeId
+    if (!this.newTrade.id) {
+      this.newTrade.id = 1
+    } else if (this.newTrade.id) {
+      this.newTrade.id += this.tradesLength
+    }
 
-    // if (
-    //   !this.newTrade.date ||
-    //   !this.newTrade.ticker ||
-    //   !this.newTrade.direction ||
-    //   !this.newTrade.entry ||
-    //   !this.newTrade.stopLoss
-    // ) {
-    //   alert('Please fill in all fields before adding a trade.')
-    //   return
-    // }
+    if (
+      !this.newTrade.ticker ||
+      !this.newTrade.direction ||
+      !this.newTrade.entry ||
+      !this.newTrade.stopLoss
+    ) {
+      alert('Please fill in all fields before adding a trade.')
+      return
+    }
 
-    // Валідація для newTrade.id
-    // if (!this.newTrade.id) {
-    //   this.newTrade.id = 1 // Якщо id не вказано, встановлюємо значення 1
-    // }
-    // console.log(this.tradesLength)
+    const distanceToStop = this.calculateDistanceToStop()
+
+    if (this.newTrade.direction === 'long') {
+      this.newTrade.takeProfit = distanceToStop * this.newTrade.riskReward + +this.newTrade.entry
+    } else if (this.newTrade.direction === 'short') {
+      this.newTrade.takeProfit = Math.abs(distanceToStop * this.newTrade.riskReward - +this.newTrade.entry)
+    }
+
+    const positionSize = this.calculatePositionSize()
+
+    if (typeof positionSize === 'number') {
+      this.newTrade.positionSize = positionSize
+      this.$store.commit('trade/addTrade', this.newTrade)
+      this.clearForm()
+    }
     this.$store.commit('trade/addTrade', this.newTrade)
 
-    // this.clearForm()
+    this.clearForm()
+  }
+
+  calculateDistanceToStop(): number {
+    return Math.abs(this.newTrade.entry - this.newTrade.stopLoss)
   }
   clearForm() {
     this.newTrade = {
@@ -129,6 +154,7 @@ export default class MyTrades extends Vue {
       takeProfit: 0,
       description: '',
       result: 0,
+      riskReward: 0,
       screenShotLink: '',
       id: 0,
     }
@@ -155,6 +181,7 @@ export default class MyTrades extends Vue {
     &__middle,
     &__bottom {
       flex-direction: column;
+      padding: 0;
     }
   }
   #description {
