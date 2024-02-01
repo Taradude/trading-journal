@@ -45,7 +45,7 @@
     ></textarea>
     <button class="my-trades__btn" @click="addTrade">Add trade</button>
     <h2>Trade History</h2>
-    <BaseResultBox v-for="trade in $store.state.trade.trades" :key="trade.id" :trade="trade" />
+    <BaseResultBox v-for="(trade, index) in $store.state.trade.trades" :key="index" :trade="trade" />
   </div>
 </template>
 
@@ -55,6 +55,8 @@ import BaseInput from '@/components/BaseInput.vue'
 import BaseSelect from '@/components/BaseSelect.vue'
 import BaseResultBox from '@/components/BaseResultBox.vue'
 import { ITrade } from '@/interfaces/ITrade'
+import { v4 as uuidv4 } from 'uuid'
+
 @Component({
   components: {
     BaseInput,
@@ -80,36 +82,22 @@ export default class MyTrades extends Vue {
     result: 0,
     screenShotLink: '',
     riskReward: 0,
-    id: 0,
+    id: '',
   }
   get tradesLength() {
     return this.$store.state.trade.trades.length
   }
 
-  calculatePositionSize() {
-    if (
-      this.newTrade.entry >= 0.001 &&
-      this.depositData.riskPerTrade >= 0.1 &&
-      this.newTrade.stopLoss >= 0.001
-    ) {
-      const riskAmount = (this.depositData.depositSize * this.depositData.riskPerTrade) / 100
-
-      const distanceToStop = Math.abs(+this.newTrade.entry - +this.newTrade.stopLoss)
-
-      const positionSize = riskAmount / distanceToStop
-      this.newTrade.positionSize = positionSize
-
-      return positionSize.toFixed(3)
+  mounted() {
+    const savedTrades = localStorage.getItem('trades')
+    if (savedTrades) {
+      this.$store.commit('trade/setTrades', JSON.parse(savedTrades))
     }
   }
-
   addTrade() {
     if (!this.newTrade.id) {
-      this.newTrade.id = 1
-    } else if (this.newTrade.id) {
-      this.newTrade.id += this.tradesLength
+      this.newTrade.id = uuidv4()
     }
-
     if (
       !this.newTrade.ticker ||
       !this.newTrade.direction ||
@@ -120,24 +108,55 @@ export default class MyTrades extends Vue {
       return
     }
 
+    const entryPrice = +this.newTrade.entry
+    const stopLossPrice = +this.newTrade.stopLoss
+
+    if (this.newTrade.direction === 'long' && stopLossPrice >= entryPrice) {
+      alert('Stop loss should be less than entry price for long trades.')
+      return
+    }
+
+    if (this.newTrade.direction === 'short' && entryPrice >= stopLossPrice) {
+      alert('Entry price should be less than stop loss for short trades.')
+      return
+    }
+
     const distanceToStop = this.calculateDistanceToStop()
 
     if (this.newTrade.direction === 'long') {
-      this.newTrade.takeProfit = distanceToStop * this.newTrade.riskReward + +this.newTrade.entry
+      this.newTrade.takeProfit = distanceToStop * this.newTrade.riskReward + entryPrice
     } else if (this.newTrade.direction === 'short') {
-      this.newTrade.takeProfit = Math.abs(distanceToStop * this.newTrade.riskReward - +this.newTrade.entry)
+      this.newTrade.takeProfit = Math.abs(distanceToStop * this.newTrade.riskReward - entryPrice)
     }
 
     const positionSize = this.calculatePositionSize()
 
-    if (typeof positionSize === 'number') {
+    if (positionSize !== undefined) {
       this.newTrade.positionSize = positionSize
       this.$store.commit('trade/addTrade', this.newTrade)
+      localStorage.setItem('trades', JSON.stringify(this.$store.state.trade.trades))
       this.clearForm()
+    } else {
+      console.error('Position size is not a number:', positionSize)
     }
-    this.$store.commit('trade/addTrade', this.newTrade)
+  }
 
-    this.clearForm()
+  calculatePositionSize(): number | undefined {
+    if (
+      this.newTrade.entry >= 0.000001 &&
+      this.depositData.riskPerTrade >= 0.1 &&
+      this.newTrade.stopLoss >= 0.000001
+    ) {
+      const riskAmount = (this.depositData.depositSize * this.depositData.riskPerTrade) / 100
+
+      const distanceToStop = Math.abs(+this.newTrade.entry - +this.newTrade.stopLoss)
+
+      const positionSize = riskAmount / distanceToStop
+
+      return positionSize
+    }
+
+    return undefined
   }
 
   calculateDistanceToStop(): number {
@@ -156,7 +175,7 @@ export default class MyTrades extends Vue {
       result: 0,
       riskReward: 0,
       screenShotLink: '',
-      id: 0,
+      id: '',
     }
   }
 }

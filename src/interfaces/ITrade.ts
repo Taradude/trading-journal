@@ -10,5 +10,5 @@ export interface ITrade {
   result: number
   screenShotLink: string
   riskReward: number
-  id: number
+  id: string
 }
