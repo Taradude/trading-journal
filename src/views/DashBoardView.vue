@@ -7,29 +7,56 @@
       <div class="stats__item">
         Best trade: <span>${{ maxTradeProfit }}</span>
       </div>
-      <div class="stats__item">
-        Worst trade: <span>${{ minTradeProfit }}</span>
-      </div>
     </div>
-    <div class="dashboard__chart"></div>
+    <div class="dashboard__chart">
+      <Bar :data="chartData"></Bar>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator'
+import { Bar } from 'vue-chartjs'
+import Chart from 'chart.js/auto'
 
-@Component
+import { ITrade } from '@/interfaces/ITrade'
+
+@Component({
+  components: {
+    Bar,
+    Chart,
+  },
+})
 export default class DashBoardView extends Vue {
   get totalTrades(): number {
     return this.$store.state.trade.trades.length
   }
-
   get maxTradeProfit(): number {
-    return this.$store.state.trade.maxResult
+    const trades = this.$store.state.trade.trades
+    return trades.length > 0 ? (this.$store.state.trade.maxResult / 100) * trades[0].depositSize : 0
+  }
+  get chartData(): object {
+    const trades = this.$store.state.trade.trades
+
+    const labels = trades.map((trade: ITrade) => trade.ticker)
+    const data = trades.map((trade: ITrade) => this.convertPercentageToMoney(trade.result))
+
+    return {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Trade Results',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1,
+          data: data,
+        },
+      ],
+    }
   }
 
-  get minTradeProfit(): number {
-    return this.$store.state.trade.minResult
+  convertPercentageToMoney(result: number): number {
+    return (result / 100) * this.$store.state.trade.trades[0].depositSize
   }
 }
 </script>

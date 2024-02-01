@@ -1,4 +1,6 @@
 export interface ITrade {
+  riskPerTrade: number
+  depositSize: number
   date: string
   ticker: string
   direction: string

@@ -8,7 +8,7 @@
         id="deposit"
         min="1000"
         step="100"
-        v-model="depositData.depositSize"
+        v-model="newTrade.depositSize"
       />
       <BaseInput
         type="number"
@@ -16,7 +16,7 @@
         label="Risk per trade %"
         min="0.1"
         step="0.1"
-        v-model="depositData.riskPerTrade"
+        v-model="newTrade.riskPerTrade"
       />
       <BaseInput
         type="number"
@@ -30,7 +30,14 @@
     <div class="my-trades__middle">
       <BaseSelect v-model="newTrade.direction" label="Direction" />
       <BaseInput type="text" id="ticker" label="Ticker" v-model="newTrade.ticker" />
-      <BaseInput type="text" id="screenshot" label="Screenshot" v-model="newTrade.screenShotLink" />
+
+      <BaseInput
+        title="Screenshot url"
+        type="text"
+        id="screenshot"
+        label="Screenshot"
+        v-model="newTrade.screenShotLink"
+      />
     </div>
     <div class="my-trades__bottom">
       <BaseInput type="date" id="date" label="Date of trade" v-model="newTrade.date" />
@@ -65,12 +72,9 @@ import { v4 as uuidv4 } from 'uuid'
   },
 })
 export default class MyTrades extends Vue {
-  depositData: any = {
+  newTrade: ITrade = {
     riskPerTrade: 0,
     depositSize: 0,
-  }
-
-  newTrade: ITrade = {
     date: '',
     ticker: '',
     direction: '',
@@ -91,50 +95,62 @@ export default class MyTrades extends Vue {
   mounted() {
     const savedTrades = localStorage.getItem('trades')
     if (savedTrades) {
-      this.$store.commit('trade/setTrades', JSON.parse(savedTrades))
+      const tradesArray = JSON.parse(savedTrades)
+      if (tradesArray.length > 0) {
+        this.$store.commit('trade/setTrades', tradesArray)
+        const lastTrade = tradesArray[tradesArray.length - 1]
+        this.$data.newTrade = { ...lastTrade }
+      }
     }
   }
+
+  beforeDestroy() {
+    localStorage.setItem('trades', JSON.stringify(this.$store.state.trade.trades))
+    localStorage.setItem('lastTradeId', this.$data.newTrade.id)
+  }
+
   addTrade() {
-    if (!this.newTrade.id) {
-      this.newTrade.id = uuidv4()
+    if (!this.$data.newTrade.id) {
+      this.$data.newTrade.id = uuidv4()
     }
     if (
-      !this.newTrade.ticker ||
-      !this.newTrade.direction ||
-      !this.newTrade.entry ||
-      !this.newTrade.stopLoss
+      !this.$data.newTrade.ticker ||
+      !this.$data.newTrade.direction ||
+      !this.$data.newTrade.entry ||
+      !this.$data.newTrade.stopLoss
     ) {
       alert('Please fill in all fields before adding a trade.')
       return
     }
 
-    const entryPrice = +this.newTrade.entry
-    const stopLossPrice = +this.newTrade.stopLoss
+    const entryPrice = +this.$data.newTrade.entry
+    const stopLossPrice = +this.$data.newTrade.stopLoss
 
-    if (this.newTrade.direction === 'long' && stopLossPrice >= entryPrice) {
+    if (this.$data.newTrade.direction === 'long' && stopLossPrice >= entryPrice) {
       alert('Stop loss should be less than entry price for long trades.')
       return
     }
 
-    if (this.newTrade.direction === 'short' && entryPrice >= stopLossPrice) {
+    if (this.$data.newTrade.direction === 'short' && entryPrice >= stopLossPrice) {
       alert('Entry price should be less than stop loss for short trades.')
       return
     }
 
     const distanceToStop = this.calculateDistanceToStop()
 
-    if (this.newTrade.direction === 'long') {
-      this.newTrade.takeProfit = distanceToStop * this.newTrade.riskReward + entryPrice
-    } else if (this.newTrade.direction === 'short') {
-      this.newTrade.takeProfit = Math.abs(distanceToStop * this.newTrade.riskReward - entryPrice)
+    if (this.$data.newTrade.direction === 'long') {
+      this.$data.newTrade.takeProfit = distanceToStop * this.$data.newTrade.riskReward + entryPrice
+    } else if (this.$data.newTrade.direction === 'short') {
+      this.$data.newTrade.takeProfit = Math.abs(distanceToStop * this.$data.newTrade.riskReward - entryPrice)
     }
 
     const positionSize = this.calculatePositionSize()
 
     if (positionSize !== undefined) {
-      this.newTrade.positionSize = positionSize
-      this.$store.commit('trade/addTrade', this.newTrade)
+      this.$data.newTrade.positionSize = positionSize
+      this.$store.commit('trade/addTrade', this.$data.newTrade)
       localStorage.setItem('trades', JSON.stringify(this.$store.state.trade.trades))
+      localStorage.setItem('lastTradeId', this.$data.newTrade.id)
       this.clearForm()
     } else {
       console.error('Position size is not a number:', positionSize)
@@ -144,10 +160,10 @@ export default class MyTrades extends Vue {
   calculatePositionSize(): number | undefined {
     if (
       this.newTrade.entry >= 0.000001 &&
-      this.depositData.riskPerTrade >= 0.1 &&
+      this.newTrade.riskPerTrade < 100 &&
       this.newTrade.stopLoss >= 0.000001
     ) {
-      const riskAmount = (this.depositData.depositSize * this.depositData.riskPerTrade) / 100
+      const riskAmount = (this.newTrade.depositSize * this.newTrade.riskPerTrade) / 100
 
       const distanceToStop = Math.abs(+this.newTrade.entry - +this.newTrade.stopLoss)
 
@@ -164,6 +180,8 @@ export default class MyTrades extends Vue {
   }
   clearForm() {
     this.newTrade = {
+      depositSize: 0,
+      riskPerTrade: 0,
       date: '',
       ticker: '',
       direction: '',

@@ -2,7 +2,7 @@
   <div class="base-select">
     <label for="">{{ label }}</label>
     <select name="base" :id="id" v-model="selectedDirection" @change="handleDirectionChange">
-      <option value="" disabled selected hidden>Direction</option>
+      <option value="" disabled selected hidden></option>
       <option value="long">Long</option>
       <option value="short">Short</option>
     </select>
